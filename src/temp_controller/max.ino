@@ -1,18 +1,21 @@
-#include <MAX6675.h>
+#include <MAX31855.h>
 
-int CS = 15;              // CS pin on MAX6675
-int SO = 16;              // SO pin of MAX6675
-int SCLK = 17;             // SCK pin of MAX6675
-int units = 1;            // Units to readout temp (0 = ˚F, 1 = ˚C)
-float error = 0.0;        // Temperature compensation error
+int CS = 15;              // CS pin on MAX31855
+int SO = 16;              // SO pin of MAX31855
+int SCLK = 17;             // SCK pin of MAX31855
 float temperature = 0.0;  // Temperature output variable
-MAX6675 temp0(CS,SO,SCLK,units);
+MAX31855 temp0(SCLK, CS, SO);
 
 float updateMax() {
-    int i;
+  int i, cd;
   double tmp = 0.0;
-  for (i=0;i<2;i++) {
-     tmp += temp0.read_temp();        // Read the temp 2 times and return the average value
+  
+  for (i=0;i<5;i++) {
+    cd = temp0.readFaultCode();
+    if (cd != 0) {
+      return -9990.0 - cd;
+    }
+     tmp += temp0.readCelsius();        // Read the temp 5 times and return the average value
   }
-  return tmp/2.0;
+  return tmp/5.0;
 }
